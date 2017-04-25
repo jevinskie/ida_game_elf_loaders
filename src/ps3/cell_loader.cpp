@@ -85,7 +85,7 @@ void cell_loader::apply() {
     add_entry(0, m_elf->entry(), "_start", true);
   }
   
-  msg("gpValue = %08x\n", m_gpValue);
+  msg("gpValue = %" PRIx64 "\n", m_gpValue);
   
   // set TOC in IDA
   ph.notify(processor_t::idp_notify(ph.loader+1), m_gpValue);
@@ -120,7 +120,7 @@ void cell_loader::applySectionHeaders() {
         continue;
   
       uchar perm = SEGPERM_READ;
-      char *sclass;
+      const char *sclass;
   
       if ( section.sh_flags & SHF_WRITE )
         perm |= SEGPERM_WRITE;
@@ -135,7 +135,7 @@ void cell_loader::applySectionHeaders() {
         sclass = CLASS_DATA;
   
       const char *name = NULL;
-      if ( section.sh_name != NULL )
+      if ( section.sh_name != 0 )
         name = &strTab[section.sh_name];
   
       applySegment( index, 
@@ -161,7 +161,7 @@ void cell_loader::applyProgramHeaders() {
   for ( const auto &segment : segments ) {
     if ( segment.p_memsz > 0 ) {
       uchar perm;
-      char *sclass;
+      const char *sclass;
 
       if ( segment.p_flags & PF_W )    // if its writable
         sclass = CLASS_DATA;
@@ -225,7 +225,7 @@ void cell_loader::applySegment(uint32 sel,
   if ( name == NULL )
     name = "";
 
-  add_segm_ex(&seg, name, sclass, NULL);
+  add_segm_ex(&seg, name, sclass, 0);
 
   if ( load == true )
     file2base(m_elf->getReader(), offset, addr, addr + size, true);
@@ -421,11 +421,11 @@ void cell_loader::loadExports(uint32 entTop, uint32 entEnd) {
       
       char libName[256];
       char symName[MAXNAMELEN];
-      if ( libNamePtr == NULL ) {
+      if ( libNamePtr == NULL_EA ) {
         do_name_anyway(nidTable, "_NONAMEnid_table");
         do_name_anyway(addTable, "_NONAMEentry_table");
       } else {
-        get_ascii_contents(libNamePtr, get_max_ascii_length(libNamePtr, ASCSTR_C), ASCSTR_C, libName, 256);
+        get_ascii_contents2(libNamePtr, get_max_ascii_length(libNamePtr, ASCSTR_C), ASCSTR_C, libName, 256);
       
         qsnprintf(symName, MAXNAMELEN, "_%s_str", libName);
         do_name_anyway(libNamePtr, symName);
@@ -438,7 +438,7 @@ void cell_loader::loadExports(uint32 entTop, uint32 entEnd) {
       }
       
       //msg("Processing entries..\n");
-      if ( nidTable != NULL && addTable != NULL ) {
+      if ( nidTable != NULL_EA && addTable != NULL_EA ) {
         for ( int i = 0; i < count; ++i ) {
           const char *resolvedNid;
           ea_t nidOffset = nidTable + (i * 4);
@@ -472,7 +472,7 @@ void cell_loader::loadExports(uint32 entTop, uint32 entEnd) {
         }
       }
     } else {
-      msg("Unknown export structure at %08x.\n", ea);
+      msg("Unknown export structure at %" PREAx ".\n", ea);
       continue;
     }
   }
@@ -513,7 +513,7 @@ void cell_loader::loadImports(uint32 stubTop, uint32 stubEnd) {
       
       char libName[256];
       char symName[MAXNAMELEN];
-      get_ascii_contents(libNamePtr, get_max_ascii_length(libNamePtr, ASCSTR_C), ASCSTR_C, libName, 256);
+      get_ascii_contents2(libNamePtr, get_max_ascii_length(libNamePtr, ASCSTR_C), ASCSTR_C, libName, 256);
       
       qsnprintf(symName, MAXNAMELEN, "_%s_0001_stub_head", libName);
       do_name_anyway(ea, symName);
@@ -525,7 +525,7 @@ void cell_loader::loadImports(uint32 stubTop, uint32 stubEnd) {
       do_name_anyway(libNamePtr - 4, symName);
       
       //msg("Processing %i exported functions...\n", nFunc);
-      if ( funcNidTable != NULL && funcTable != NULL ) {
+      if ( funcNidTable != NULL_EA && funcTable != NULL_EA ) {
         for ( int i = 0; i < nFunc; ++i ) {
           const char *resolvedNid;
       
@@ -556,7 +556,7 @@ void cell_loader::loadImports(uint32 stubTop, uint32 stubEnd) {
       }
       
       //msg("Processing exported variables...\n");
-      if ( varNidTable != NULL && varTable ) {
+      if ( varNidTable != NULL_EA && varTable ) {
         for ( int i = 0; i < nVar; ++i ) {
           const char *resolvedNid;
       
@@ -580,7 +580,7 @@ void cell_loader::loadImports(uint32 stubTop, uint32 stubEnd) {
       }
       
       //msg("Processing exported TLS variables...\n");
-      if ( tlsNidTable != NULL && tlsTable != NULL ) {
+      if ( tlsNidTable != NULL_EA && tlsTable != NULL_EA ) {
         for ( int i = 0; i < nVar; ++i ) {
           const char *resolvedNid;
       
@@ -603,7 +603,7 @@ void cell_loader::loadImports(uint32 stubTop, uint32 stubEnd) {
         }
       }
     } else {
-      msg("Unknown import structure at %08x.\n", ea);
+      msg("Unknown import structure at %" PREAx ".\n", ea);
       continue;
     }
   }
@@ -625,10 +625,10 @@ const char *cell_loader::getNameFromDatabase(
             do {
               if ( strtoul(entry->Attribute("id"),0,0) == nid )
                   return entry->Attribute("name");
-            } while ( entry = entry->NextSiblingElement() );
+            } while ( (entry = entry->NextSiblingElement()) );
           }
         }
-      } while ( group = group->NextSiblingElement() );
+      } while ( (group = group->NextSiblingElement()) );
     }
   }
 

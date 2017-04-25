@@ -62,11 +62,15 @@ else()
     set(suffix "32")
 endif()
 
+
 if(CMAKE_SIZEOF_VOID_P EQUAL 8 AND NOT NC_M32)
     set(library_dir "lib/x64_${platform}_${compiler}_${suffix}")
 else()
     set(library_dir "lib/x86_${platform}_${compiler}_${suffix}")
 endif()
+
+message(ERROR ${library_dir})
+
 
 #
 # Find IDA SDK.
@@ -92,7 +96,7 @@ if(IDA_SDK_PATH)
     if(WIN32)
         set(IDA_DEFINITIONS ${IDA_DEFINITIONS} -D__NT__)
     endif()
-    if(UNIX)
+    if(UNIX AND NOT APPLE)
         set(IDA_DEFINITIONS ${IDA_DEFINITIONS} -D__LINUX__)
     endif()
     if(APPLE)
@@ -124,7 +128,7 @@ if(IDA_SDK_PATH)
         else()
             file(GLOB_RECURSE IDA_SHARED_LIBRARY  "/Applications/IDA*/lib${IDA_SHARED_LIB_NAME}.dylib")
         endif()
-        set(IDA_LIBRARIES ${IDA_LIBRARIES} ${IDA_SHARED_LIBRARY})
+        set(IDA_LIBRARIES ${IDA_SHARED_LIBRARY} ${IDA_LIBRARIES})
     elseif(UNIX)
         if(IDA_64_BIT_EA_T)
             set(IDA_PLUGIN_EXT "64.llx64")
