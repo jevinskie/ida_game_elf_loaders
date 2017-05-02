@@ -22,23 +22,25 @@ set(SOURCES
     sce.h
 )
 
-find_package(IDA)
+find_package(IdaSdk REQUIRED)
 
-include_directories(${IDA_INCLUDE_DIR})
-include_directories(${IDA_SDK_PATH}/ldr)
-include_directories(${ELF_COMMON_PATH})
-include_directories(${THIRD_PARTY_PATH}/tinyxml)
+add_ida_loader(ps3ldr EA64 ${SOURCES})
 
-add_definitions(${IDA_DEFINITIONS})
-add_definitions(-DUSE_STANDARD_FILE_FUNCTIONS) # for tinyxml...
-add_definitions(-DUSE_DANGEROUS_FUNCTIONS) # for Mac libc++...
+target_include_directories(ps3ldr${_llx}
+    PUBLIC ${IdaSdk_INCLUDE_DIRS}
+    PRIVATE ${ELF_COMMON_PATH} ${THIRD_PARTY_PATH}/tinyxml
+)
+target_include_directories(ps3ldr${_llx64}
+    PUBLIC ${IdaSdk_INCLUDE_DIRS}
+    PRIVATE ${ELF_COMMON_PATH} ${THIRD_PARTY_PATH}/tinyxml
+)
 
-add_library(ps3ldr SHARED ${SOURCES})
-target_compile_options(ps3ldr PRIVATE -m32)
-target_link_libraries(ps3ldr -m32 ${IDA_LIBRARIES})
-set_target_properties(ps3ldr PROPERTIES
-    OUTPUT_NAME "ps3"
-    PREFIX ""
-    SUFFIX "${IDA_PLUGIN_EXT}"
+target_include_directories(ps3ldr${_llx} PUBLIC ${IdaSdk_INCLUDE_DIRS})
+target_include_directories(ps3ldr${_llx64} PUBLIC ${IdaSdk_INCLUDE_DIRS})
+
+target_link_libraries(ps3ldr${_llx} ${IdaSdk_LIBRARIES})
+target_link_libraries(ps3ldr${_llx64} ${IdaSdk_LIBRARIES})
+
+set_target_properties(ps3ldr${_llx} ps3ldr${_llx64} PROPERTIES
     CXX_STANDARD 11
 )
