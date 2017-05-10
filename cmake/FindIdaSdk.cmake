@@ -99,7 +99,8 @@ function(_ida_plugin name ea64 link_script)  # ARGN contains sources
       target_link_libraries(${name} -m32
                                     -Wl,-flat_namespace
                                     -Wl,-undefined,warning
-                                    -Wl,-exported_symbol,_PLUGIN)
+                                    -Wl,-exported_symbol,_PLUGIN
+                                    -Wl,-exported_symbol,_LDSC)
     else()
       set(script_flag )
       target_link_libraries(${name}

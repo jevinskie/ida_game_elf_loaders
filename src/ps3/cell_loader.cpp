@@ -52,10 +52,10 @@ void cell_loader::apply() {
     // TOC based relocations. TOC is not set in 
     // moduleInfo. It seems to always be zero.
     if ( m_hasSegSym ) {
-      //msg("Looking for .toc section\n");
+      msg("Looking for .toc section\n");
       auto tocSection = m_elf->getSectionByName(".toc");
       if ( tocSection ) {
-        //msg("Found toc section!\n");
+        msg("Found toc section!\n");
         m_gpValue = tocSection->sh_addr + m_relocAddr;
       }
     }
@@ -264,8 +264,8 @@ void cell_loader::applySectionRelocations() {
         uint32 type = ELF64_R_TYPE(rela.r_info);
         uint32 sym  = ELF64_R_SYM (rela.r_info);
 
-        //msg("r_type: %08x\n", type);
-        //msg("r_sym: %08x\n", sym);
+        msg("r_type: %08x\n", type);
+        msg("r_sym: %08x\n", sym);
 
         if ( type == R_PPC64_NONE ) {
           msg("Skipping relocation..\n");
@@ -277,8 +277,8 @@ void cell_loader::applySectionRelocations() {
           continue;
         }
 
-        //msg("nsyms = %08x\n", m_elf->getNumSymbols());
-        //msg("symsec = %04x\n", symbols[ sym ].st_shndx);
+        msg("nsyms = %08x\n", m_elf->getNumSymbols());
+        msg("symsec = %04x\n", symbols[ sym ].st_shndx);
 
         if ( sym > m_elf->getNumSymbols() ) {
           msg("Invalid symbol index!\n");
@@ -359,7 +359,7 @@ void cell_loader::applyRelocation(uint32 type, uint32 addr, uint32 saddr) {
   addr += m_relocAddr;
   saddr += m_relocAddr;
 
-  //msg("Applying relocation %i (%08x -> %08x)\n", type, addr, saddr);
+  msg("Applying relocation %i (%08x -> %08x)\n", type, addr, saddr);
 
   switch ( type ) {
     case R_PPC64_ADDR32:
@@ -415,9 +415,9 @@ void cell_loader::loadExports(uint32 entTop, uint32 entEnd) {
     auto ntlsvar = get_word(ea + offsetof(_scelibent_common, ntlsvar));
     auto count = nfunc + nvar + ntlsvar;
 
-    //msg("Num Functions: %i\n", nfunc);
-    //msg("Num Variables: %i\n", nvar);
-    //msg("Num TLS Variables: %i\n", ntlsvar);
+    msg("Num Functions: %i\n", nfunc);
+    msg("Num Variables: %i\n", nvar);
+    msg("Num TLS Variables: %i\n", ntlsvar);
 
     if ( structsize == sizeof(_scelibent_ppu32) ) {
       doStruct(ea, sizeof(_scelibent_ppu32), tid);
@@ -444,7 +444,7 @@ void cell_loader::loadExports(uint32 entTop, uint32 entEnd) {
         do_name_anyway(addTable, symName);
       }
       
-      //msg("Processing entries..\n");
+      msg("Processing entries..\n");
       if ( nidTable != NULL_EA && addTable != NULL_EA ) {
         for ( int i = 0; i < count; ++i ) {
           const char *resolvedNid;
@@ -472,8 +472,8 @@ void cell_loader::loadExports(uint32 entTop, uint32 entEnd) {
               auto_make_proc(addToc);
           }
       
-          //msg("doDwrd: %08x\n", nidOffset);
-          //msg("doDwrd: %08x\n", addOffset);
+          msg("doDwrd: %0" PREAx "\n", nidOffset);
+          msg("doDwrd: %0" PREAx "\n", addOffset);
           doDwrd(nidOffset, 4);
           doDwrd(addOffset, 4);
         }
@@ -503,9 +503,9 @@ void cell_loader::loadImports(uint32 stubTop, uint32 stubEnd) {
     auto nVar    = get_word(ea + offsetof(_scelibstub_common, nvar));
     auto nTlsVar = get_word(ea + offsetof(_scelibstub_common, ntlsvar));
 
-    //msg("Num Functions: %i\n", nFunc);
-    //msg("Num Variables: %i\n", nVar);
-    //msg("Num TLS Variables: %i\n", nTlsVar);
+    msg("Num Functions: %i\n", nFunc);
+    msg("Num Variables: %i\n", nVar);
+    msg("Num TLS Variables: %i\n", nTlsVar);
 
     if (structsize == sizeof(_scelibstub_ppu32)) {
       doStruct(ea, sizeof(_scelibstub_ppu32), tid);
@@ -531,7 +531,7 @@ void cell_loader::loadImports(uint32 stubTop, uint32 stubEnd) {
       qsnprintf(symName, MAXNAMELEN, "_sce_package_version_%s", libName);
       do_name_anyway(libNamePtr - 4, symName);
       
-      //msg("Processing %i exported functions...\n", nFunc);
+      msg("Processing %i exported functions...\n", nFunc);
       if ( funcNidTable != NULL_EA && funcTable != NULL_EA ) {
         for ( int i = 0; i < nFunc; ++i ) {
           const char *resolvedNid;
@@ -544,6 +544,7 @@ void cell_loader::loadImports(uint32 stubTop, uint32 stubEnd) {
       
           resolvedNid = getNameFromDatabase(libName, nid);
           if ( resolvedNid ) {
+            msg("resolved '%s'\n", resolvedNid);
             set_cmt(nidOffset, resolvedNid, false);
             qsnprintf(symName, MAXNAMELEN, "%s.stub_entry", resolvedNid);
             do_name_anyway(funcOffset, symName);
@@ -551,18 +552,19 @@ void cell_loader::loadImports(uint32 stubTop, uint32 stubEnd) {
             do_name_anyway(func, symName);
           }
       
-          //msg("doDwrd: %08x\n", nidOffset);
-          //msg("doDwrd: %08x\n", funcOffset);
+          msg("doDwrd: %0" PREAx "\n", nidOffset);
+          msg("doDwrd: %0" PREAx "\n", funcOffset);
           doDwrd(nidOffset, 4);   // nid
           doDwrd(funcOffset, 4);  // func
           if ( add_func(func, BADADDR) ) {
             get_func(func)->flags |= FUNC_LIB;
             //add_entry(func, func, ...)
+            msg("add_entry(func, func, ...)\n");
           }
         }
       }
       
-      //msg("Processing exported variables...\n");
+      msg("Processing exported variables...\n");
       if ( varNidTable != NULL_EA && varTable ) {
         for ( int i = 0; i < nVar; ++i ) {
           const char *resolvedNid;
@@ -579,14 +581,14 @@ void cell_loader::loadImports(uint32 stubTop, uint32 stubEnd) {
             do_name_anyway(varOffset, resolvedNid);
           }
       
-          //msg("doDwrd: %08x\n", nidOffset);
-          //msg("doDwrd: %08x\n", varOffset);
+          msg("doDwrd: %0" PREAx "\n", nidOffset);
+          msg("doDwrd: %0" PREAx "\n", varOffset);
           doDwrd(nidOffset, 4);
           doDwrd(varOffset, 4);
         }
       }
       
-      //msg("Processing exported TLS variables...\n");
+      msg("Processing exported TLS variables...\n");
       if ( tlsNidTable != NULL_EA && tlsTable != NULL_EA ) {
         for ( int i = 0; i < nVar; ++i ) {
           const char *resolvedNid;
@@ -603,8 +605,8 @@ void cell_loader::loadImports(uint32 stubTop, uint32 stubEnd) {
             do_name_anyway(tlsOffset, resolvedNid);
           }
       
-          //msg("doDwrd: %08x\n", nidOffset);
-          //msg("doDwrd: %08x\n", tlsOffset);
+          msg("doDwrd: %0" PREAx "\n", nidOffset);
+          msg("doDwrd: %0" PREAx "\n", tlsOffset);
           doDwrd(nidOffset, 4);
           doDwrd(tlsOffset, 4);
         }
@@ -689,7 +691,7 @@ void cell_loader::swapSymbols() {
   if (section == NULL)
     return;
 
-  //msg("Swapping symbols...\n");
+  msg("Swapping symbols...\n");
 
   auto symbols = m_elf->getSymbols();
 
@@ -723,9 +725,9 @@ void cell_loader::applySymbols() {
          bind = ELF64_ST_BIND(symbol.st_info);
     auto value = symbol.st_value;
 
-    //msg("st_name: %08x\n", symbol.st_name);
-    //msg("st_type: %08x\n", type);
-    //msg("st_bind: %08x\n", bind);
+    msg("st_name: %08x\n", symbol.st_name);
+    msg("st_type: %08x\n", type);
+    msg("st_bind: %08x\n", bind);
 
     if ( symbol.st_shndx > m_elf->getNumSections() ||
         !(m_elf->getSections()[ symbol.st_shndx ].sh_flags & SHF_ALLOC) )
