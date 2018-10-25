@@ -51,7 +51,7 @@ private:
   void loadExports(uint32 entTop, uint32 entEnd);
   void loadImports(uint32 stubTop, uint32 stubEnd);
   
-  const char *getNameFromDatabase(const char *group, unsigned int nid);
+  const char *getNameFromDatabase(qstring group, unsigned int nid);
 
   void applyProcessInfo();
   

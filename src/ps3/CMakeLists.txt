@@ -24,7 +24,7 @@ set(SOURCES
 
 find_package(IdaSdk REQUIRED)
 
-add_ida_loader(ps3ldr EA64 ${SOURCES})
+add_ida_loader(ps3ldr ${SOURCES})
 
 target_include_directories(ps3ldr${_llx}
     PUBLIC ${IdaSdk_INCLUDE_DIRS}

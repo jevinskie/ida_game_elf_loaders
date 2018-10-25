@@ -9,11 +9,8 @@
 #define DATABASE_FILE "ps3.xml"
 
 static int idaapi 
- accept_file(linput_t *li, char fileformatname[MAX_FILE_FORMAT_NAME], int n)
+ accept_file(qstring *fileformatname, qstring *processor, linput_t *li, const char *filename)
 {
-  if (n > 0)
-    return 0;
-
   elf_reader<elf64> elf(li);
    
   if (elf.verifyHeader() &&
@@ -28,9 +25,9 @@ static int idaapi
     else
       return 0;
 
-    set_processor_type("ppc", SETPROC_ALL);
+    *processor = "ppc";
         
-    qsnprintf(fileformatname, MAX_FILE_FORMAT_NAME, "Playstation 3 PPU %s", type);
+    fileformatname->sprnt("Playstation 3 PPU %s", type);
     
     return 1 | ACCEPT_FIRST;
   }
@@ -41,12 +38,13 @@ static int idaapi
 static void idaapi 
  load_file(linput_t *li, ushort neflags, const char *fileformatname)
 {
+  set_processor_type("ppc", SETPROC_LOADER);
   elf_reader<elf64> elf(li); elf.read();
     
   ea_t relocAddr = 0;
   if (elf.type() == ET_SCE_PPURELEXEC) {
     if (neflags & NEF_MAN) {
-      askaddr(&relocAddr, "Please specify a relocation address base.");
+      ask_addr(&relocAddr, "Please specify a relocation address base.");
     }
   }
 
@@ -56,6 +54,8 @@ static void idaapi
 #ifdef _WIN32
 __declspec(dllexport)
 #endif
+//__attribute__((externally_visible))
+__attribute__((visibility("default")))
 loader_t LDSC = 
 {
   IDP_INTERFACE_VERSION,
