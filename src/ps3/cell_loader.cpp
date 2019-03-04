@@ -264,8 +264,8 @@ void cell_loader::applySectionRelocations() {
         uint32 type = ELF64_R_TYPE(rela.r_info);
         uint32 sym  = ELF64_R_SYM (rela.r_info);
 
-        msg("r_type: %08x\n", type);
-        msg("r_sym: %08x\n", sym);
+        // msg("r_type: %08x\n", type);
+        // msg("r_sym: %08x\n", sym);
 
         if ( type == R_PPC64_NONE ) {
           msg("Skipping relocation..\n");
@@ -472,8 +472,8 @@ void cell_loader::loadExports(uint32 entTop, uint32 entEnd) {
               auto_make_proc(addToc);
           }
       
-          msg("create_dword: %" PREAx "\n", nidOffset);
-          msg("create_dword: %" PREAx "\n", addOffset);
+          // msg("create_dword: %" PREAx "\n", nidOffset);
+          // msg("create_dword: %" PREAx "\n", addOffset);
           create_dword(nidOffset, 4);
           create_dword(addOffset, 4);
         }
@@ -551,8 +551,8 @@ void cell_loader::loadImports(uint32 stubTop, uint32 stubEnd) {
             force_name(func, symName);
           }
       
-          msg("create_dword: %" PREAx "\n", nidOffset);
-          msg("create_dword: %" PREAx "\n", funcOffset);
+          // msg("create_dword: %" PREAx "\n", nidOffset);
+          // msg("create_dword: %" PREAx "\n", funcOffset);
           create_dword(nidOffset, 4);   // nid
           create_dword(funcOffset, 4);  // func
           /*if ( add_func(func, BADADDR) ) {
@@ -579,8 +579,8 @@ void cell_loader::loadImports(uint32 stubTop, uint32 stubEnd) {
             force_name(varOffset, resolvedNid);
           }
       
-          msg("create_dword: %" PREAx "\n", nidOffset);
-          msg("create_dword: %" PREAx "\n", varOffset);
+          // msg("create_dword: %" PREAx "\n", nidOffset);
+          // msg("create_dword: %" PREAx "\n", varOffset);
           create_dword(nidOffset, 4);
           create_dword(varOffset, 4);
         }
@@ -603,8 +603,8 @@ void cell_loader::loadImports(uint32 stubTop, uint32 stubEnd) {
             force_name(tlsOffset, resolvedNid);
           }
       
-          msg("create_dword: %" PREAx "\n", nidOffset);
-          msg("create_dword: %" PREAx "\n", tlsOffset);
+          // msg("create_dword: %" PREAx "\n", nidOffset);
+          // msg("create_dword: %" PREAx "\n", tlsOffset);
           create_dword(nidOffset, 4);
           create_dword(tlsOffset, 4);
         }
@@ -723,9 +723,9 @@ void cell_loader::applySymbols() {
          bind = ELF64_ST_BIND(symbol.st_info);
     auto value = symbol.st_value;
 
-    msg("st_name: %08x\n", symbol.st_name);
-    msg("st_type: %08x\n", type);
-    msg("st_bind: %08x\n", bind);
+    // msg("st_name: %08x\n", symbol.st_name);
+    // msg("st_type: %08x\n", type);
+    // msg("st_bind: %08x\n", bind);
 
     if ( symbol.st_shndx > m_elf->getNumSections() ||
         !(m_elf->getSections()[ symbol.st_shndx ].sh_flags & SHF_ALLOC) )
